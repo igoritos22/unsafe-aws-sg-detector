@@ -13,6 +13,14 @@ The filter pattern to get any changes in Security Groups:
 ```json
 {($.eventName = AuthorizeSecurityGroupIngress) || ($.eventName = AuthorizeSecurityGroupEgress) || ($.eventName = RevokeSecurityGroupIngress) || ($.eventName = RevokeSecurityGroupEgress) || ($.eventName = CreateSecurityGroup) || ($.eventName = DeleteSecurityGroup)}
 ```
+
+## Pre requirements
+To perform this function in your environment you need:
+
+  * An S3 bucket to store cloudtraiil logs.
+  * Cloudtrail enabled in your region/enviroment.
+  * Cloudwatch log group to recive cloudtrail events.
+
 ## Make changes in lambda function
 To change anything in fuction lambda you need change the main.go file. After changes you need also build the new zip package to upload in function lambda. The commando to setup the .zip package is:
 
@@ -23,6 +31,9 @@ CGO_ENABLED=0 go build -o main -ldflags '-w' main.go && zip archive.zip main
 This function don't use any SNS endpoint to publish the findings. There is a external lib that sends an post message directly to slack channel. 
 
 **CAUTION**: Expose the slack webhook channel can make the attackers explore your notification environment, sending malicious link, malwares and other threats.
+
+## Deploy function lambda
+To deploy this function you need upload the .zip package in lambda function session. You need also select the handler of lambda function. This lambda function are made in golang then the handler that must be selected is **main**.
 
 ## Using with Terraform
 You can deploy this function with terraform modules. Below you can see a simple example how to do it.
@@ -62,6 +73,11 @@ module "aws_lambda" {
   filter_pattern              = "{ ($.eventName = AuthorizeSecurityGroupIngress) || ($.eventName = AuthorizeSecurityGroupEgress) || ($.eventName = RevokeSecurityGroupIngress) || ($.eventName = RevokeSecurityGroupEgress) || ($.eventName = CreateSecurityGroup) || ($.eventName = DeleteSecurityGroup)}"
 }"
 ```
+
+## Test lambda function in AWS Console
+Once deployed, you can select the test tab and click test. If all be right you will see something like this:
+
+![imagem](https://user-images.githubusercontent.com/73206099/169704123-3eeb6afc-e127-4507-9c2d-c05b6c5bf366.png)
 
 ## Slack Notification
 The notification in slack channel has this layout:
